@@ -5,6 +5,9 @@
 #include "stat.h"
 #include "user.h"
 
+#include "exit_codes.h"
+#include "stddef.h"
+
 #define N  1000
 
 void
@@ -25,24 +28,24 @@ forktest(void)
     if(pid < 0)
       break;
     if(pid == 0)
-      exit();
+      exit(FORK_PID_0);
   }
 
   if(n == N){
     printf(1, "fork claimed to work N times!\n", N);
-    exit();
+    exit(SUCCESS);
   }
 
   for(; n > 0; n--){
-    if(wait() < 0){
+    if(wait(&pid) < 0){
       printf(1, "wait stopped early\n");
-      exit();
+      exit(FORK_STOPPED_EARLY);
     }
   }
 
-  if(wait() != -1){
+  if(wait(&pid) != -1){
     printf(1, "wait got too many\n");
-    exit();
+    exit(FORK_TOO_MANY);
   }
 
   printf(1, "fork test OK\n");
@@ -52,5 +55,5 @@ int
 main(void)
 {
   forktest();
-  exit();
+  exit(SUCCESS);
 }

@@ -2,6 +2,8 @@
 #include "stat.h"
 #include "user.h"
 
+#include "exit_codes.h"
+
 char buf[512];
 
 void
@@ -27,7 +29,7 @@ wc(int fd, char *name)
   }
   if(n < 0){
     printf(1, "wc: read error\n");
-    exit();
+    exit(WC_READ_ERROR);
   }
   printf(1, "%d %d %d %s\n", l, w, c, name);
 }
@@ -39,16 +41,16 @@ main(int argc, char *argv[])
 
   if(argc <= 1){
     wc(0, "");
-    exit();
+    exit(SUCCESS);
   }
 
   for(i = 1; i < argc; i++){
     if((fd = open(argv[i], 0)) < 0){
       printf(1, "wc: cannot open %s\n", argv[i]);
-      exit();
+      exit(WC_FAIL_OPEN_FILE);
     }
     wc(fd, argv[i]);
     close(fd);
   }
-  exit();
+  exit(SUCCESS);
 }

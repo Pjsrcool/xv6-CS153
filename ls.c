@@ -3,6 +3,8 @@
 #include "user.h"
 #include "fs.h"
 
+#include "exit_codes.h"
+
 char*
 fmtname(char *path)
 {
@@ -77,9 +79,9 @@ main(int argc, char *argv[])
 
   if(argc < 2){
     ls(".");
-    exit();
+    exit(SUCCESS);
   }
   for(i=1; i<argc; i++)
     ls(argv[i]);
-  exit();
+  exit(SUCCESS);
 }

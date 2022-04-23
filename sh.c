@@ -4,6 +4,9 @@
 #include "user.h"
 #include "fcntl.h"
 
+#include "exit_codes.h"
+
+
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -65,7 +68,7 @@ runcmd(struct cmd *cmd)
   struct redircmd *rcmd;
 
   if(cmd == 0)
-    exit();
+    exit(SUCCESS);
 
   switch(cmd->type){
   default:
@@ -74,7 +77,7 @@ runcmd(struct cmd *cmd)
   case EXEC:
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
-      exit();
+      exit(SH_EXEC);
     exec(ecmd->argv[0], ecmd->argv);
     printf(2, "exec %s failed\n", ecmd->argv[0]);
     break;
@@ -84,16 +87,20 @@ runcmd(struct cmd *cmd)
     close(rcmd->fd);
     if(open(rcmd->file, rcmd->mode) < 0){
       printf(2, "open %s failed\n", rcmd->file);
-      exit();
+      exit(SH_REDIR);
     }
     runcmd(rcmd->cmd);
     break;
 
   case LIST:
     lcmd = (struct listcmd*)cmd;
+
     if(fork1() == 0)
       runcmd(lcmd->left);
-    wait();
+
+    int child_exit_code;
+    wait(&child_exit_code);
+
     runcmd(lcmd->right);
     break;
 
@@ -117,8 +124,10 @@ runcmd(struct cmd *cmd)
     }
     close(p[0]);
     close(p[1]);
-    wait();
-    wait();
+
+    int p_child_exit_codes[2];
+    wait(&p_child_exit_codes[0]);
+    wait(&p_child_exit_codes[1]);
     break;
 
   case BACK:
@@ -127,7 +136,7 @@ runcmd(struct cmd *cmd)
       runcmd(bcmd->cmd);
     break;
   }
-  exit();
+  exit(SUCCESS);
 }
 
 int
@@ -166,16 +175,18 @@ main(void)
     }
     if(fork1() == 0)
       runcmd(parsecmd(buf));
-    wait();
+
+    int child_process;
+    wait(&child_process);
   }
-  exit();
+  exit(SUCCESS);
 }
 
 void
 panic(char *s)
 {
   printf(2, "%s\n", s);
-  exit();
+  exit(SH_PANIC);
 }
 
 int

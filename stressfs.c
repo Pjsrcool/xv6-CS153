@@ -13,6 +13,9 @@
 #include "fs.h"
 #include "fcntl.h"
 
+#include "exit_codes.h"
+
+
 int
 main(int argc, char *argv[])
 {
@@ -43,7 +46,8 @@ main(int argc, char *argv[])
     read(fd, data, sizeof(data));
   close(fd);
 
-  wait();
+  int child_process;
+  wait(&child_process);
 
-  exit();
+  exit(SUCCESS);
 }

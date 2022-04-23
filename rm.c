@@ -2,6 +2,8 @@
 #include "stat.h"
 #include "user.h"
 
+#include "exit_codes.h"
+
 int
 main(int argc, char *argv[])
 {
@@ -9,7 +11,7 @@ main(int argc, char *argv[])
 
   if(argc < 2){
     printf(2, "Usage: rm files...\n");
-    exit();
+    exit(RM_NO_PARAM);
   }
 
   for(i = 1; i < argc; i++){
@@ -19,5 +21,5 @@ main(int argc, char *argv[])
     }
   }
 
-  exit();
+  exit(SUCCESS);
 }
