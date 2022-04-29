@@ -266,7 +266,23 @@ exit(void)
   sched();
   panic("zombie exit");
 }
-
+int
+updatePriority(int pid, int newPriority){
+    struct proc *p;
+    acquire(&ptable.lock);
+    struct proc *pTemp = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(pid == p->pid){
+            pTemp = p;
+            break;
+        }
+    }
+    if(!pTemp){
+        return -1;
+    }
+        pTemp->priorityValue = newPriority;
+        return pid;
+}
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
 int
@@ -275,7 +291,7 @@ wait(void)
   struct proc *p;
   int havekids, pid;
   struct proc *curproc = myproc();
-  
+  updatePriority(curproc->pid,curproc->priorityValue-1);
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for exited children.
@@ -325,30 +341,29 @@ scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
   for(;;){
     // Enable interrupts on this processor.
-    sti();
+    sti();ß
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    //struct proc *lowestPriority = ptable.proc;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        c->proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
+        swtch(&(c->scheduler), p->context);
+        switchkvm();
 
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
     }
     release(&ptable.lock);
 
