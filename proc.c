@@ -277,6 +277,7 @@ updatePriority(int pid, int newPriority){
             break;
         }
     }
+    release(&ptable.lock);
     if(!pTemp){
         return -1;
     }
@@ -343,28 +344,31 @@ scheduler(void)
   c->proc = 0;
   for(;;){
     // Enable interrupts on this processor.
-    sti();ß
+    sti();
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    //struct proc *lowestPriority = ptable.proc;
+    struct proc *lowestPriority = ptable.proc;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-        // Switch to chosen process.  It is the process's job
-        // to release ptable.lock and then reacquire it
-        // before jumping back to us.
-        c->proc = p;
-        switchuvm(p);
-        p->state = RUNNING;
-
-        swtch(&(c->scheduler), p->context);
-        switchkvm();
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
+      if(p->priorityValue < lowestPriority -> priorityValue){
+          lowestPriority=p;
+      }
     }
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = lowestPriority;
+      switchuvm(lowestPriority);
+      lowestPriority->state = RUNNING;
+
+      swtch(&(c->scheduler), lowestPriority->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
     release(&ptable.lock);
 
   }
