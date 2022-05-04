@@ -267,9 +267,10 @@ exit(void)
   panic("zombie exit");
 }
 int
-updatePriority(int newPriority){
+updatepriority(int newPriority){
     struct proc *p = myproc();
     p->priorityValue=newPriority%32;
+    return 0;
 }
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.

@@ -90,10 +90,10 @@ sys_uptime(void)
   return xticks;
 }
 int
-sys_updatePriority(void)
+sys_updatepriority(void)
 {
     int newPriority;
     if(argint(1,&newPriority ) < 0)
         return -1;
-    return updatePriority(newPriority);
+    return updatepriority(newPriority);
 }
