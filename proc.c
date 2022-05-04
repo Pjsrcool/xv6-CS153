@@ -280,7 +280,7 @@ wait(void)
   struct proc *p;
   int havekids, pid;
   struct proc *curproc = myproc();
-  updatePriority(curproc->priorityValue-1);
+  updatepriority(curproc->priorityValue-1);
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for exited children.
