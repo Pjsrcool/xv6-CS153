@@ -260,7 +260,8 @@ exit(void)
         wakeup1(initproc);
     }
   }
-
+ curproc->finishTime = ticks;
+  cprintf("PID %d finished in %d\n",curproc->pid, curproc->finishTime - curproc->startTime);
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
   sched();
@@ -270,6 +271,7 @@ int
 updatepriority(int newPriority){
     struct proc *p = myproc();
     p->priorityValue=newPriority%32;
+    yield();
     return 0;
 }
 // Wait for a child process to exit and return its pid.
@@ -348,6 +350,7 @@ scheduler(void)
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = lowestPriority;
+      lowestPriority->priorityValue = lowestPriority->priorityValue + 1;
       switchuvm(lowestPriority);
       lowestPriority->state = RUNNING;
 
@@ -357,8 +360,7 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
-    release(&ptable.lock);
-
+      release(&ptable.lock);
   }
 }
 
