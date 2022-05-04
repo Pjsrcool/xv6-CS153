@@ -200,6 +200,8 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+  np->startTime = ticks;
+  np->burstTime = 0;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
