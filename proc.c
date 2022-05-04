@@ -111,6 +111,7 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
+  // init ticks
   p->startTime = ticks;
   p->burstTime = 0;
   return p;
@@ -216,6 +217,9 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+
+  np->startTime = ticks;
+  np->burstTime = 0;
 
   release(&ptable.lock);
 
