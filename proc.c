@@ -267,22 +267,9 @@ exit(void)
   panic("zombie exit");
 }
 int
-updatePriority(int pid, int newPriority){
-    struct proc *p;
-    acquire(&ptable.lock);
-    struct proc *pTemp = 0;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(pid == p->pid){
-            pTemp = p;
-            break;
-        }
-    }
-    release(&ptable.lock);
-    if(!pTemp){
-        return -1;
-    }
-        pTemp->priorityValue = newPriority;
-        return pid;
+updatePriority(int newPriority){
+    struct proc *p = myproc();
+    p->priorityValue=newPriority%32;
 }
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
@@ -292,7 +279,7 @@ wait(void)
   struct proc *p;
   int havekids, pid;
   struct proc *curproc = myproc();
-  updatePriority(curproc->pid,curproc->priorityValue-1);
+  updatePriority(curproc->priorityValue-1);
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for exited children.

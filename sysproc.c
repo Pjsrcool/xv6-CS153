@@ -92,11 +92,8 @@ sys_uptime(void)
 int
 sys_updatePriority(void)
 {
-    int pid;
     int newPriority;
-    if(argint(0,&pid)<0)
-        return -1;
     if(argint(1,&newPriority ) < 0)
         return -1;
-    return updatePriority(pid, newPriority);
+    return updatePriority(newPriority);
 }
