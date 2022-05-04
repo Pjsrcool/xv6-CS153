@@ -260,8 +260,10 @@ exit(void)
         wakeup1(initproc);
     }
   }
- curproc->finishTime = ticks;
-  cprintf("PID %d finished in %d\n",curproc->pid, curproc->finishTime - curproc->startTime);
+  curproc->finishTime = ticks;
+  int turnaroundTmp = curproc->finishTime - curproc->startTime;
+  int waitTmp = turnaroundTmp - curproc->burstTime;
+  cprintf("PID %d turnaround time %d Wait time %d\n",curproc->pid, turnaroundTmp,waitTmp);
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
   sched();
@@ -349,6 +351,8 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
+      int start = ticks;
+      int end;
       c->proc = lowestPriority;
       lowestPriority->priorityValue = lowestPriority->priorityValue + 1;
       switchuvm(lowestPriority);
@@ -356,6 +360,8 @@ scheduler(void)
 
       swtch(&(c->scheduler), lowestPriority->context);
       switchkvm();
+      end = ticks;
+      lowestPriority->burstTime += (end - start);
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.

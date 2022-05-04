@@ -98,6 +98,7 @@ exec(char *path, char **argv)
   curproc->pgdir = pgdir;
   curproc->sz = sz;
   curproc->startTime = ticks;
+  curproc->burstTime = 0;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
   switchuvm(curproc);
